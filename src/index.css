@@ -1,0 +1,95 @@
+@import "tailwindcss";
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  line-height: 1.6;
+}
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+:root {
+  --navbar-height: 100px;
+  --footer-height: 100px;
+  --sidebar-width: 310px;
+  --sidebar-collapsed: 80px;
+  
+  --primary-bg: #16213d;
+  --secondary-bg: #0f1724;
+  --accent-color: #d4344a;
+  --accent-hover: #9c0327;
+  --text-primary: #ffffff;
+  --text-secondary: #ccc;
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+}
+
+
+@media (max-width: 1024px) {
+  :root {
+    --navbar-height: 80px;
+    --footer-height: 80px;
+    --sidebar-width: 90px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  :root {
+    --navbar-height: 70px;
+    --footer-height: 70px;
+    --sidebar-width: 70px;
+  }
+}
+
+@media (max-width: 440px) {
+  :root {
+    --navbar-height: 64px;
+    --footer-height: 64px;
+    --sidebar-width: 64px;
+  }
+}
+
+Utility Classes
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading-spinner {
+  border: 3px solid var(--text-secondary);
+  border-top: 3px solid var(--accent-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: var(--accent-color);
+  text-align: center;
+  padding: var(--spacing-lg);
+  font-weight: 500;
+} */

@@ -1,0 +1,95 @@
+.search-container {
+  padding: 0 var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.webseries-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(322px, 1fr));
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  align-items: start;
+  justify-items: center;
+}
+
+.title-category {
+  font-size: 44px;
+  font-weight: 600;
+  margin: var(--spacing-lg);
+  font-family: "Mukta Mahee";
+  color: var(--text-primary);
+}
+
+.webseries-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.webseries-error {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--accent-color);
+}
+
+.webseries-empty {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+  font-size: 18px;
+}
+
+/* Tablet Responsive */
+@media (max-width: 1024px) {
+  .search-container {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .webseries-container {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+  
+  .title-category {
+    font-size: 36px;
+    margin: var(--spacing-md);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .search-container {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .webseries-container {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+  
+  .title-category {
+    font-size: 28px;
+    margin: var(--spacing-md);
+  }
+}
+
+@media (max-width: 440px) {
+  .search-container {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .webseries-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+  }
+  
+  .title-category {
+    font-size: 22px;
+    margin: var(--spacing-sm);
+    text-align: center;
+  }
+}
