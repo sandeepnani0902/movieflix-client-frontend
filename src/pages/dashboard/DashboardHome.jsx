@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Navbar from "../../components/navbar/Navbar";
-import SidePanel from "../../components/sidePanel/SidePanel";
-import Footer from "../../components/footer/Footer";
+import Navbar from "../../components/layout/Navbar";
+import SidePanel from "../../components/layout/SidePanel";
+import Footer from "../../components/layout/Footer";
 import { Outlet } from "react-router-dom";
 
 const DashboardHome = () => {

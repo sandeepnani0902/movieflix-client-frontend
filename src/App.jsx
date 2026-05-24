@@ -10,7 +10,7 @@ import WebSeries from "./pages/dashboard/WebSeries";
 import Activity from "./pages/dashboard/Activity";
 import Settings from "./pages/dashboard/Settings";
 import Register from "./pages/registration/Register";
-import Subscription from "./components/subscription/subscription";
+import Subscription from "./components/subscription/Subscription";
 import Profile from "./pages/profile/Profile";
 import { Movie } from "./pages/dashboard/Movie";
 import SeasonPage from "./pages/dashboard/SeasonPage";

@@ -1,125 +1,130 @@
 import { useEffect, useState } from "react";
 import { normalizeUrl } from "../../utils/urlHelper";
 import { useNavigate, useParams } from "react-router-dom";
-import MediaViewer from '../../components/MediaViewer';
-import api from "../../api/api";
+import MediaViewer from "../../components/common/MediaViewer";
+import { useMovies } from "../../context/MovieContext";
+
 export const Movie = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const {
+    movies,
+    favorites,
+    subscription,
+    fetchMovies,
+    fetchFavorites,
+    fetchSubscriptionStatus,
+    toggleFavoriteItem,
+  } = useMovies();
+
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isFavorited, setIsFavorited] = useState(false);
+  const [openmedia, setOpenMedia] = useState(false);
   const [media, setMedia] = useState({
-    url:"",
-    type:"",
-    title:""
-  })
-  const [openmedia, setOpenMedia] = useState(false)
+    url: "",
+    type: "",
+    title: "",
+  });
 
   useEffect(() => {
-    fetchMovieDetails();
-    checkFavoriteStatus();
-  }, [id]);
+    const initializeData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const checkFavoriteStatus = async () => {
-    try {
-      const response = await api.get(`/favorites/check/${id}`);
-      setIsFavorited(response.data.favorited);
-    } catch (err) {
-      console.error("Error checking favorite status:", err);
-    }
-  };
+        // Fetch dependencies in parallel to populate cache
+        let currentMovies = movies;
+        if (!currentMovies) {
+          currentMovies = await fetchMovies();
+        }
+
+        const selectedMovie = currentMovies.find((m) => m._id === id);
+        if (!selectedMovie) {
+          throw new Error("Movie not found");
+        }
+
+        setMovie(selectedMovie);
+        await Promise.all([fetchFavorites(), fetchSubscriptionStatus()]);
+      } catch (err) {
+        console.error("Error loading movie details:", err);
+        setError(err.message || "Unable to load movie details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeData();
+  }, [id, movies]);
+
+  const isFavorited = favorites ? favorites.some((fav) => fav.mediaId === id) : false;
 
   const handleToggleFavorite = async () => {
     if (!movie) return;
     try {
-      const response = await api.post("/favorites/toggle", {
-        mediaId: movie._id,
-        mediaType: "movie",
-        title: movie.title,
-        image: movie.image,
-        genre: movie.genre,
-        language: movie.language,
-      });
-      setIsFavorited(response.data.favorited);
-      alert(response.data.message);
+      const favorited = await toggleFavoriteItem(movie, "movie");
+      alert(favorited ? "Added to favorites" : "Removed from favorites");
     } catch (err) {
       console.error("Error toggling favorite status:", err);
-      alert(err.response?.data?.message || "Failed to update favorites.");
+      alert("Failed to update favorites.");
     }
   };
 
-  const fetchMovieDetails = async () => {
+  const handleWatchNow = async () => {
+    if (!movie) return;
     try {
-      setLoading(true);
-      setError(null);
-
-      const baseUrl =
-        import.meta.env.VITE_API_URL || "http://localhost:2025";
-
-      const response = await fetch(
-        `${baseUrl}/movieflix/movies`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch movies");
+      let subStatus = subscription;
+      if (!subStatus) {
+        subStatus = await fetchSubscriptionStatus(true);
       }
 
-      const data = await response.json();
-
-      const selectedMovie = data.data.find(
-        (movie) => movie._id === id
-      );
-
-      if (!selectedMovie) {
-        throw new Error("Movie not found");
+      if (subStatus?.subscribed) {
+        setMedia({
+          url: movie.videourl,
+          type: "video",
+          title: movie.title,
+        });
+        setOpenMedia(true);
+      } else {
+        alert("A premium subscription is required to watch this video. Redirecting to subscription plans.");
+        navigate("/dashboard/subscription");
       }
-
-      setMovie(selectedMovie);
     } catch (err) {
-      console.error(err);
-      setError("Unable to load movie details.");
-    } finally {
-      setLoading(false);
+      console.error("Subscription check error:", err);
+      alert("Could not verify subscription. Please try again.");
     }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-[#0f172a]">
         <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !movie) {
     return (
-      <div className="flex justify-center items-center h-screen text-red-500 text-xl">
-        {error}
+      <div className="flex flex-col justify-center items-center h-screen bg-[#0f172a] text-red-500 text-xl">
+        <p className="mb-4">{error || "Movie not found"}</p>
+        <button
+          onClick={() => navigate("/dashboard/movies")}
+          className="bg-red-500 text-white px-4 py-2 rounded-lg text-base cursor-pointer"
+        >
+          Back to Movies
+        </button>
       </div>
     );
   }
 
   const bannerUrl = normalizeUrl(movie.banner);
 
-  function CloseModel(){
-    setOpenMedia(false)
-  }
   return (
     <div className="w-full min-h-screen bg-[#0f172a] text-white">
-      
       {/* Banner Section */}
       <div
-        className="
-          relative
-          w-full
-          h-[40vh]
-          md:h-[55vh]
-          bg-cover
-          bg-center
-        "
+        className="relative w-full h-[40vh] md:h-[55vh] bg-cover bg-center"
         style={{
           backgroundImage: `url(${bannerUrl})`,
         }}
@@ -130,267 +135,60 @@ export const Movie = () => {
         {/* Back Button */}
         <button
           onClick={() => navigate("/dashboard/movies")}
-          className="
-            absolute
-            top-5
-            left-5
-            z-20
-            bg-black/60
-            hover:bg-red-500
-            transition
-            px-4
-            py-2
-            rounded-lg
-            text-white
-            font-medium
-          "
+          className="absolute top-5 left-5 z-20 bg-black/60 hover:bg-red-500 transition px-4 py-2 rounded-lg text-white font-medium cursor-pointer"
         >
           ← Back
         </button>
 
         {/* Movie Poster */}
-        <div
-          className="
-            absolute
-            bottom-[-80px]
-            left-6
-            md:left-10
-            z-20
-          "
-        >
+        <div className="absolute bottom-[-80px] left-6 md:left-10 z-20">
           <img
             src={normalizeUrl(movie.image)}
             alt={movie.title}
-            className="
-              w-[160px]
-              md:w-[240px]
-              h-[240px]
-              md:h-[360px]
-              object-cover
-              rounded-2xl
-              shadow-2xl
-              border-4
-              border-white/10
-            "
+            className="w-[160px] md:w-[240px] h-[240px] md:h-[360px] object-cover rounded-2xl shadow-2xl border-4 border-white/10"
           />
         </div>
       </div>
 
       {/* Movie Content */}
-      <div
-        className="
-          pt-[100px]
-          md:pt-[120px]
-          px-6
-          md:px-10
-          pb-10
-        "
-      >
-        <h1
-          className="
-            text-3xl
-            md:text-5xl
-            font-bold
-            mb-4
-          "
-        >
-          {movie.title}
-        </h1>
+      <div className="pt-[100px] md:pt-[120px] px-6 md:px-10 pb-10">
+        <h1 className="text-3xl md:text-5xl font-bold mb-4">{movie.title}</h1>
 
-        <div
-          className="
-            flex
-            flex-wrap
-            gap-4
-            text-sm
-            md:text-base
-            text-gray-300
-            mb-6
-          "
-        >
-          <span>
-            🎬 {movie.genre}
-          </span>
-
-          <span>
-            🌐 {movie.language}
-          </span>
-
-          <span>
-            📅 {movie.releaseYear}
-          </span>
+        <div className="flex flex-wrap gap-4 text-sm md:text-base text-gray-300 mb-6">
+          <span>🎬 {movie.genre}</span>
+          <span>🌐 {movie.language}</span>
+          <span>📅 {movie.releaseYear}</span>
         </div>
 
-        <p
-          className="
-            text-gray-300
-            leading-8
-            max-w-4xl
-            text-base
-            md:text-lg
-          "
-        >
+        <p className="text-gray-300 leading-8 max-w-4xl text-base md:text-lg">
           {movie.description}
         </p>
 
         {/* Watch and Favorite Buttons */}
         <div className="mt-8 flex flex-wrap gap-4">
           <button
-            className="
-              bg-red-600
-              hover:bg-red-700
-              active:scale-95
-              transition-all
-              px-8
-              py-3
-              rounded-xl
-              text-white
-              font-semibold
-              text-lg
-              shadow-lg
-              cursor-pointer
-            "
-            onClick={async () => {
-              try {
-                const response = await api.get("/subscription/status");
-                if (response.data.subscribed) {
-                  setMedia((prev) => ({
-                    ...prev,
-                    url: movie.videourl,
-                    type: "video",
-                    title: movie.title,
-                  }));
-                  setOpenMedia(true);
-                } else {
-                  alert("A premium subscription is required to watch this video. Redirecting to subscription plans.");
-                  navigate("/dashboard/subscription");
-                }
-              } catch (err) {
-                console.error("Subscription check error:", err);
-                alert("Could not verify subscription. Please try again.");
-              }
-            }}
+            className="bg-red-600 hover:bg-red-700 active:scale-95 transition-all px-8 py-3 rounded-xl text-white font-semibold text-lg shadow-lg cursor-pointer"
+            onClick={handleWatchNow}
           >
             ▶ Watch Now
           </button>
 
           <button
             onClick={handleToggleFavorite}
-            className={`
-              px-8
-              py-3
-              rounded-xl
-              font-semibold
-              text-lg
-              shadow-lg
-              cursor-pointer
-              transition-all
-              active:scale-95
-              border
-              ${
-                isFavorited
-                  ? "bg-slate-750 text-red-500 border-red-500 hover:bg-slate-700"
-                  : "bg-slate-800 text-white border-zinc-700 hover:bg-zinc-700"
-              }
-            `}
+            className={`px-8 py-3 rounded-xl font-semibold text-lg shadow-lg cursor-pointer transition-all active:scale-95 border ${
+              isFavorited
+                ? "bg-slate-750 text-red-500 border-red-500 hover:bg-slate-700"
+                : "bg-slate-800 text-white border-zinc-700 hover:bg-zinc-700"
+            }`}
           >
             {isFavorited ? "♥ Favorited" : "♡ Add to Favorite"}
           </button>
         </div>
       </div>
-      { openmedia && <MediaViewer media={media} onClose={CloseModel}/>}
+
+      {openmedia && (
+        <MediaViewer media={media} onClose={() => setOpenMedia(false)} />
+      )}
     </div>
-    
   );
 };
-
-// import { useEffect, useState } from "react";
-// import { normalizeUrl } from "../../utils/urlHelper";
-// import { useNavigate, useParams } from "react-router-dom";
-// export const Movie = () => {
-//   const { id } = useParams();
-//   const navigate = useNavigate();
-
-//   const [movie, setMovie] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-
-//   useEffect(() => {
-//     fetchMovieDetails();
-//   }, [id]);
-
-//   const fetchMovieDetails = async () => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-
-//       const baseUrl = "http://localhost:2025";
-//       const response = await fetch(`${baseUrl}/movieflix/movies`);
-
-//       if (!response.ok) {
-//         throw new Error("Failed to fetch movies");
-//       }
-
-//       const data = await response.json();
-
-//       const selectedMovie = data.data.find(
-//         (movie) => movie._id === id
-//       );
-
-//       if (!selectedMovie) {
-//         throw new Error("Movie not found");
-//       }
-
-//       setMovie(selectedMovie);
-//     } catch (err) {
-//       console.error(err);
-//       setError("Unable to load movie details.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   if (loading) return <div>Loading movie...</div>;
-//   if (error) return <div>{error}</div>;
-
-//   // ✅ normalize banner URL (THIS IS IMPORTANT)
-//   const bannerUrl = normalizeUrl(movie.banner);
-
-//   return (
-//     <div className="movie-details">
-//       {/* Back button */}
-//       <div className="back-to-movie">
-//         <button onClick={() => navigate("/dashboard/movies")}>
-//           ← Back
-//         </button>
-//       </div>
-
-//       {/* Banner Header */}
-//       <div
-//         className="movie-header"
-//         style={{
-//           width: "100%",
-//           height: "35vh",
-//           background: `url(${bannerUrl}) center / cover no-repeat`
-//         //   backgroundRepeat: "no-repeat",
-//         //   backgroundSize: "cover",
-//         //   backgroundPosition: "center",
-//         //   boxShadow: "0 0 6px rgba(0,0,0,0.6)",
-//         }}
-//       >
-
-//         <img src={normalizeUrl(movie.image)} alt=""  height={350}/>
-//     </div>
-
-//       {/* Movie Info */}
-//       <div className="movie-info">
-//         <h1>{movie.title}</h1>
-//         <p>{movie.description}</p>
-
-//         <p><strong>Genre:</strong> {movie.genre}</p>
-//         <p><strong>Language:</strong> {movie.language}</p>
-//         <p><strong>Release Year:</strong> {movie.releaseYear}</p>
-//       </div>
-//     </div>
-//   );
-// };
