@@ -9,7 +9,7 @@ export function normalizeUrl(url) {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
-  const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:2025";
   // Ensure no leading slash duplication
   const cleaned = url.startsWith("/") ? url.slice(1) : url;
   return `${base}/${cleaned}`;
