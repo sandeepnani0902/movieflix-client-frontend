@@ -5,7 +5,7 @@ const Dashboard = () => {
   const { languages, loadingLanguages, fetchLanguages } = useMovies();
 
   useEffect(() => {
-    fetchLanguages();
+    fetchLanguages(true);
   }, []);
 
   const formatLanguageName = (language) => {
@@ -27,7 +27,7 @@ const Dashboard = () => {
   const languagesList = languages || [];
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-0">
       <h2 className="text-3xl font-bold text-white mb-8">Dashboard</h2>
 
       {languagesList.length === 0 ? (

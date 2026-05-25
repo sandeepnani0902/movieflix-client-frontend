@@ -154,9 +154,9 @@ const SidePanel = ({ isOpen, onClose }) => {
               </div>
             </div>
             {/* Mobile version drop anchor */}
-            <div className="absolute right-0 top-0 lg:hidden">
+            {/* <div className="absolute right-0 top-0 lg:hidden">
               <ActivityDropdown open={dropdownOpen} toggle={toggleDropdown} />
-            </div>
+            </div> */}
           </li>
 
           {/* Settings */}

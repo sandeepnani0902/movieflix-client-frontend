@@ -23,12 +23,12 @@ const SeasonPage = () => {
           currentSeriesList = await fetchWebSeries();
         }
 
-        const series = currentSeriesList.find((item) => item._id === id);
+        const series = currentSeriesList?.find((item) => item._id === id);
         if (!series) {
           throw new Error("Web series not found");
         }
 
-        const selectedSeason = series.seasons.find(
+        const selectedSeason = series?.seasons?.find(
           (s) => s.seasonNumber == seasonNumber
         );
         if (!selectedSeason) {
@@ -78,32 +78,34 @@ const SeasonPage = () => {
         ← Back
       </button>
 
-      <h1 className="text-4xl font-bold mb-8">{season.title}</h1>
+      <h1 className="text-4xl font-bold mb-8">{season?.title}</h1>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {season.episodes.map((episode) => (
+      {season?.episodes ? <div className="grid md:grid-cols-3 gap-6">
+        {season?.episodes?.map((episode) => (
           <div
-            key={episode.episodeNumber}
+            key={episode?.episodeNumber}
             onClick={() =>
               navigate(
-                `/dashboard/web-series/${id}/season/${seasonNumber}/episode/${episode.episodeNumber}`
+                `/dashboard/web-series/${id}/season/${seasonNumber}/episode/${episode?.episodeNumber}`
               )
             }
             className="bg-[#1e293b] rounded-xl overflow-hidden cursor-pointer hover:scale-105 transition"
           >
             <img
-              src={normalizeUrl(episode.banner)}
+              src={normalizeUrl(episode?.banner)}
               alt=""
               className="w-full h-[220px] object-cover"
             />
 
             <div className="p-4">
-              <h2 className="text-2xl font-bold">{episode.title}</h2>
-              <p className="text-gray-400">Episode {episode.episodeNumber}</p>
+              <h2 className="text-2xl font-bold">{episode?.title}</h2>
+              <p className="text-gray-400">Episode {episode?.episodeNumber}</p>
             </div>
           </div>
         ))}
-      </div>
+      </div> : <div className=" bg-[#0f172a] text-white text-xl">
+        Episodes are coming soon...
+      </div>}
     </div>
   );
 };
